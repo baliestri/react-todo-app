@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { DataGrid } from "@mui/x-data-grid";
+import { useEffect, useState } from "react";
+import { DataGrid, GridActionsCellItem } from "@mui/x-data-grid";
 import { Box, IconButton, Stack, TextField, Tooltip } from "@mui/material";
 import {
   Backspace as BackspaceIcon,
@@ -8,8 +8,28 @@ import {
   ToggleOff as ToggleOffIcon,
   ToggleOn as ToggleOnIcon,
 } from "@mui/icons-material";
+import { connect } from "react-redux";
+import { bindActionCreators } from "redux";
 
-const TodoDataGrid = ({}) => {
+import {
+  onMarkAsDone,
+  onMarkAsPending,
+  onRemove,
+  onSearch,
+  onSearchChange,
+  onSearchClear,
+} from "../../common/store/actions/todo";
+
+const TodoDataGrid = ({
+  rows,
+  onMarkAsDone,
+  onMarkAsPending,
+  onRemove,
+  onSearch,
+  onSearchChange,
+  onSearchClear,
+  search,
+}) => {
   const [pageSize, setPageSize] = useState(5);
 
   const columns = [
@@ -52,7 +72,7 @@ const TodoDataGrid = ({}) => {
             <Tooltip title="Concluir">
               <GridActionsCellItem
                 icon={<ToggleOffIcon />}
-                onClick={() => {}}
+                onClick={() => onMarkAsDone(params.row.id)}
                 label="Concluir"
               />
             </Tooltip>
@@ -60,7 +80,7 @@ const TodoDataGrid = ({}) => {
             <Tooltip title="Desconcluir">
               <GridActionsCellItem
                 icon={<ToggleOnIcon />}
-                onClick={() => {}}
+                onClick={() => onMarkAsPending(params.row.id)}
                 label="Desconcluir"
               />
             </Tooltip>
@@ -69,13 +89,17 @@ const TodoDataGrid = ({}) => {
         <Tooltip title="Remover">
           <GridActionsCellItem
             icon={<DeleteIcon />}
-            onClick={() => {}}
+            onClick={() => onRemove(params.row.id)}
             label="Remover"
           />
         </Tooltip>,
       ],
     },
   ];
+
+  useEffect(() => {
+    onSearch();
+  }, []);
 
   return (
     <Box sx={{ padding: "2rem" }}>
@@ -85,16 +109,29 @@ const TodoDataGrid = ({}) => {
           variant="outlined"
           size="small"
           sx={{ flex: 1 }}
+          value={search}
+          onChange={onSearchChange}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              onSearch();
+            }
+
+            if (event.key === "Escape") {
+              event.preventDefault();
+              onSearchClear();
+            }
+          }}
         />
-        <IconButton aria-label="pesquisar" onClick={() => {}}>
+        <IconButton aria-label="pesquisar" onClick={onSearch}>
           <SearchIcon />
         </IconButton>
-        <IconButton aria-label="limpar" onClick={() => {}}>
+        <IconButton aria-label="limpar" onClick={onSearchClear}>
           <BackspaceIcon />
         </IconButton>
       </Stack>
       <DataGrid
-        rows={[]}
+        rows={rows}
         columns={columns}
         rowsPerPageOptions={[5, 10, 20]}
         pageSize={pageSize}
@@ -111,4 +148,22 @@ const TodoDataGrid = ({}) => {
   );
 };
 
-export default TodoDataGrid;
+const mapStateToProps = (state) => ({
+  rows: state.todo.data,
+  search: state.todo.search,
+});
+
+const mapDispatchToProps = (dispatch) =>
+  bindActionCreators(
+    {
+      onMarkAsDone,
+      onMarkAsPending,
+      onRemove,
+      onSearchChange,
+      onSearchClear,
+      onSearch,
+    },
+    dispatch
+  );
+
+export default connect(mapStateToProps, mapDispatchToProps)(TodoDataGrid);
