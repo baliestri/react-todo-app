@@ -1,21 +1,15 @@
 import { useState } from "react";
 import { DataGrid } from "@mui/x-data-grid";
-import { Box, Button, IconButton, Stack, TextField } from "@mui/material";
+import { Box, IconButton, Stack, TextField, Tooltip } from "@mui/material";
 import {
-  Search as SearchIcon,
   Backspace as BackspaceIcon,
+  Delete as DeleteIcon,
+  Search as SearchIcon,
+  ToggleOff as ToggleOffIcon,
+  ToggleOn as ToggleOnIcon,
 } from "@mui/icons-material";
 
-import TodoDataGridActions from "./datagrid-actions";
-import TodoDataGridCheckbox from "./datagrid-checkbox";
-
-const TodoDataGrid = ({
-  rows,
-  onSearchClick,
-  onCleanClick,
-  onSearchChange,
-  search,
-}) => {
+const TodoDataGrid = ({}) => {
   const [pageSize, setPageSize] = useState(5);
 
   const columns = [
@@ -45,17 +39,41 @@ const TodoDataGrid = ({
       headerName: "Concluído",
       headerAlign: "center",
       type: "boolean",
-      renderCell: TodoDataGridCheckbox,
       sortable: false,
     },
     {
       field: "actions",
+      type: "actions",
       flex: 1,
-      headerName: "Ações",
-      headerAlign: "center",
-      renderCell: TodoDataGridActions,
       sortable: false,
-      cellClassName: "cell--actions",
+      getActions: (params) => [
+        <>
+          {!params.row.done ? (
+            <Tooltip title="Concluir">
+              <GridActionsCellItem
+                icon={<ToggleOffIcon />}
+                onClick={() => {}}
+                label="Concluir"
+              />
+            </Tooltip>
+          ) : (
+            <Tooltip title="Desconcluir">
+              <GridActionsCellItem
+                icon={<ToggleOnIcon />}
+                onClick={() => {}}
+                label="Desconcluir"
+              />
+            </Tooltip>
+          )}
+        </>,
+        <Tooltip title="Remover">
+          <GridActionsCellItem
+            icon={<DeleteIcon />}
+            onClick={() => {}}
+            label="Remover"
+          />
+        </Tooltip>,
+      ],
     },
   ];
 
@@ -67,42 +85,23 @@ const TodoDataGrid = ({
           variant="outlined"
           size="small"
           sx={{ flex: 1 }}
-          value={search}
-          onChange={onSearchChange}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              event.preventDefault();
-              onSearchClick();
-            }
-
-            if (event.key === "Escape") {
-              event.preventDefault();
-              onCleanClick();
-            }
-          }}
         />
-        <IconButton aria-label="pesquisar" onClick={onSearchClick}>
+        <IconButton aria-label="pesquisar" onClick={() => {}}>
           <SearchIcon />
         </IconButton>
-        <IconButton aria-label="limpar" onClick={onCleanClick}>
+        <IconButton aria-label="limpar" onClick={() => {}}>
           <BackspaceIcon />
         </IconButton>
       </Stack>
       <DataGrid
-        rows={rows}
+        rows={[]}
         columns={columns}
         rowsPerPageOptions={[5, 10, 20]}
         pageSize={pageSize}
-        onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
+        onPageSizeChange={setPageSize}
         initialState={{
           sorting: {
             sortModel: [{ field: "createdAt", sort: "desc" }],
-          },
-        }}
-        sx={{
-          "& .cell--actions": {
-            display: "flex",
-            justifyContent: "center",
           },
         }}
         disableColumnMenu={true}
